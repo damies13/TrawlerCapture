@@ -1,8 +1,13 @@
+#!/usr/bin/python3
 #
 #
 # 	Trawler Capture
 # 	Screen Capture tool for testers, to make documenting test cases easier.
 #
+#
+#    Version v0.4.1-beta
+#
+
 #
 # import Tkinter as tk				#python2
 import tkinter as tk				#python3
@@ -62,8 +67,14 @@ from elevate import elevate
 class Settings:
 	capturefullscreen = True
 	capturescreennumb = 99
+	version = "v0.6.0-beta"
 
 	title = "Trawler Capture"
+	hkeys = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "key"]
+			# "q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "[", "]",
+			# "a", "s", "d", "f", "g", "h", "j", "k", "l", ";", "'",
+			# "z", "x", "c", "v", "b", "n", "m", ",", ".", "/"
+			# "`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "9"]
 
 	capturewin = False
 
@@ -71,12 +82,12 @@ class Settings:
 	def __init__(self, master):
 		self.master = master
 		self.frame = tk.Frame(self.master)
-		self.master.title(self.title)
+		self.master.title(self.title + " - " + self.version)
 		self.outdir = os.path.dirname(__file__)
 		print("outdir:", self.outdir)
 		rowno = 0
 
-		self.outl = ttk.Label(self.master, text = "Capture Results:")
+		self.outl = ttk.Label(self.master, text = "Capture location:")
 		self.outetxt = tk.StringVar()
 		self.oute = ttk.Entry(self.master, state='disabled', textvariable=self.outetxt)
 		self.outb = ttk.Button(self.master, text = "...", command=self._selectDir)
