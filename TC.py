@@ -5,7 +5,7 @@
 # 	Screen Capture tool for testers, to make documenting test cases easier.
 #
 #
-#    Version v0.4.0
+#    Version v0.5.0
 #
 
 #
@@ -67,7 +67,7 @@ from elevate import elevate
 class Settings:
 	capturefullscreen = True
 	capturescreennumb = 99
-	version = "v0.4.0"
+	version = "v0.5.0"
 
 	title = "Trawler Capture"
 	# hkeys = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "key"]
