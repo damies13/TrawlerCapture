@@ -126,7 +126,8 @@ class Settings:
 
 		if (platform.system() == "Windows"):
 			self.capturewin = True
-
+		# else:
+		# 	print("platform.system:", platform.system())
 
 		# if False:
 		if self.capturewin:
@@ -150,11 +151,25 @@ class Settings:
 		# b1.grid(row = 2, column = 2, sticky = 'E')
 		rowno += 1
 
-		b1 = ttk.Button(self.master, text = "Quit", command=self.master.destroy)
-		b1.grid(row = rowno, column = 2, sticky = 'E')
+		# https://mail.python.org/pipermail/python-list/2003-April/229647.html
+		# https://stackoverflow.com/questions/41900436/binding-keys-in-mac-os-x-tkinter
+		if (platform.system() == "Darwin"):
+			b1 = ttk.Button(self.master, text = "Quit", command=self.master.destroy, underline=0)
+			b1.grid(row = rowno, column = 2, sticky = 'E')
 
-		b2 = ttk.Button(self.master, text = "Capture", command=self.Start_Capture)
-		b2.grid(row = rowno, column = 3, sticky = 'E')
+			b2 = ttk.Button(self.master, text = "Capture", command=self.Start_Capture, underline=3)
+			b2.grid(row = rowno, column = 3, sticky = 'E')
+			self.master.bind('<Command-t>', lambda e:self.Start_Capture())
+
+
+		else:
+			b1 = ttk.Button(self.master, text = "Quit", command=self.master.destroy, underline=0)
+			b1.grid(row = rowno, column = 2, sticky = 'E')
+			self.master.bind('<Alt_L><q>', lambda e:self.master.destroy())
+
+			b2 = ttk.Button(self.master, text = "Capture", command=self.Start_Capture, underline=0)
+			b2.grid(row = rowno, column = 3, sticky = 'E')
+			self.master.bind('<Alt_L><c>', lambda e:self.Start_Capture())
 
 		# keyboard.add_hotkey('F10', print, args=('triggered', 'hotkey'))
 
@@ -366,8 +381,17 @@ class TC_Capture:
 		self.imgComments = tk.Text(self.master, height=5)
 		self.imgComments.grid(row = 3, column = 0, sticky = 'NSEW', columnspan = 2, rowspan = 2, padx = 5, pady = 5)
 
-		b1 = ttk.Button(self.master, text = "Cancel", command=self.on_closing)
-		b2 = ttk.Button(self.master, text = "Save", command=self._save)
+		if (platform.system() == "Darwin"):
+			b1 = ttk.Button(self.master, text = "Cancel", command=self.on_closing)
+			self.master.bind('<Escape>', lambda e:self.on_closing())
+			b2 = ttk.Button(self.master, text = "Save", command=self._save)
+			self.master.bind('<Command-Return>', lambda e:self._save())
+
+		else:
+			b1 = ttk.Button(self.master, text = "Cancel", command=self.on_closing, underline=0)
+			self.master.bind('<Alt_L><c>', lambda e:self.on_closing())
+			b2 = ttk.Button(self.master, text = "Save", command=self._save, underline=0)
+			self.master.bind('<Alt_L><s>', lambda e:self._save())
 
 		b1.grid(row = 3, column = 2, sticky = 'SE')
 		b2.grid(row = 4, column = 2, sticky = 'SE')
