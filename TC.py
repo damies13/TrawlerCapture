@@ -1,8 +1,13 @@
+#!/usr/bin/python3
 #
 #
 # 	Trawler Capture
 # 	Screen Capture tool for testers, to make documenting test cases easier.
 #
+#
+#    Version v0.4.0
+#
+
 #
 # import Tkinter as tk				#python2
 import tkinter as tk				#python3
@@ -62,8 +67,15 @@ from elevate import elevate
 class Settings:
 	capturefullscreen = True
 	capturescreennumb = 99
+	version = "v0.4.0"
 
 	title = "Trawler Capture"
+	# hkeys = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "key"]
+
+	hkey = {}
+	hkey["Return"] = "f10"
+	hkey["FullScr"] = "f9"
+	hkey["AWindow"] = "f8"
 
 	capturewin = False
 
@@ -71,12 +83,12 @@ class Settings:
 	def __init__(self, master):
 		self.master = master
 		self.frame = tk.Frame(self.master)
-		self.master.title(self.title)
+		self.master.title(self.title + " - " + self.version)
 		self.outdir = os.path.dirname(__file__)
 		print("outdir:", self.outdir)
 		rowno = 0
 
-		self.outl = ttk.Label(self.master, text = "Capture Results:")
+		self.outl = ttk.Label(self.master, text = "Capture location:")
 		self.outetxt = tk.StringVar()
 		self.oute = ttk.Entry(self.master, state='disabled', textvariable=self.outetxt)
 		self.outb = ttk.Button(self.master, text = "...", command=self._selectDir)
@@ -87,17 +99,29 @@ class Settings:
 
 		rowno += 1
 
-		l1l = ttk.Label(self.master, text = "Hotkey to return to this screen:")
-		l1k = ttk.Label(self.master, text = "F10")
-		l1l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
-		l1k.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
+		hk1l = ttk.Label(self.master, text = "Hotkey to return to this screen:")
+		# hk1k = ttk.Label(self.master, text = self.hkey["Return"])
+		self.hk1txt = tk.StringVar()
+		self.hk1k = ttk.Entry(self.master, state='disabled', justify="right", textvariable=self.hk1txt)
+		self.hk1txt.set(self.hkey["Return"])
+		hk1b = ttk.Button(self.master, text = "Set", command=self._selectHK1)
+		hk1l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
+		self.hk1k.grid(row = rowno, column = 2, sticky = 'E', pady = 2)
+		hk1b.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
 
 		rowno += 1
 
-		l2l = ttk.Label(self.master, text = "Hotkey to capture screen:")
-		l2k = ttk.Label(self.master, text = "F9")
-		l2l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
-		l2k.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
+		hk2l = ttk.Label(self.master, text = "Hotkey to capture screen:")
+		# l2k = ttk.Label(self.master, text = self.hkey["FullScr"])
+		# l2l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
+		# l2k.grid(row = rowno, column = 2, sticky = 'E', pady = 2)
+		self.hk2txt = tk.StringVar()
+		self.hk2k = ttk.Entry(self.master, state='disabled', justify="right", textvariable=self.hk2txt)
+		self.hk2txt.set(self.hkey["FullScr"])
+		hk2b = ttk.Button(self.master, text = "Set", command=self._selectHK2)
+		hk2l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
+		self.hk2k.grid(row = rowno, column = 2, sticky = 'E', pady = 2)
+		hk2b.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
 
 
 		if (platform.system() == "Windows"):
@@ -107,10 +131,17 @@ class Settings:
 		# if False:
 		if self.capturewin:
 			rowno += 1
-			l3l = ttk.Label(self.master, text = "Hotkey to capture window:")
-			l3k = ttk.Label(self.master, text = "F8")
-			l3l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
-			l3k.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
+			hk3l = ttk.Label(self.master, text = "Hotkey to capture window:")
+			# l3k = ttk.Label(self.master, text = self.hkey["AWindow"])
+			# hk3l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
+			# l3k.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
+			self.hk3txt = tk.StringVar()
+			self.hk3k = ttk.Entry(self.master, state='disabled', justify="right", textvariable=self.hk3txt)
+			self.hk3txt.set(self.hkey["AWindow"])
+			hk3b = ttk.Button(self.master, text = "Set", command=self._selectHK3)
+			hk3l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
+			self.hk3k.grid(row = rowno, column = 2, sticky = 'E', pady = 2)
+			hk3b.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
 
 
 		# button widget
@@ -130,19 +161,47 @@ class Settings:
 		self.w2 = tk.Toplevel(self.master)
 		self.TC_Cap = TC_Capture(self.w2)
 
+	def _selectHK1(self):
+		print("_selectHK1")
+		# self.hk1txt.set("<Press HotKey>")
+		hkey = keyboard.read_hotkey()
+		print("_selectHK1: hkey", hkey)
+		self.hkey["Return"] = hkey
+		self.hk1txt.set(self.hkey["Return"])
+		keyboard.unhook_all_hotkeys()
+
+	def _selectHK2(self):
+		print("_selectHK2")
+		hkey = keyboard.read_hotkey()
+		print("_selectHK2: hkey", hkey)
+		self.hkey["FullScr"] = hkey
+		self.hk2txt.set(self.hkey["FullScr"])
+		keyboard.unhook_all_hotkeys()
+
+	def _selectHK3(self):
+		print("_selectHK3")
+		hkey = keyboard.read_hotkey()
+		print("_selectHK3: hkey", hkey)
+		self.hkey["AWindow"] = hkey
+		self.hk3txt.set(self.hkey["AWindow"])
+		keyboard.unhook_all_hotkeys()
+
 	def _selectDir(self):
 		# ScenarioFile = str(tkf.askopenfilename(initialdir=base.config['Plan']['ScenarioDir'], title = "Select RFSwarm Scenario File", filetypes = (("RFSwarm","*.rfs"),("all files","*.*"))))
 		self.outdir = tkf.askdirectory()
 		print("_selectDir: outdir", self.outdir)
 		self.outetxt.set(self.outdir)
+		# self.outetxt.xview("end")
+		self.oute.xview(len(self.outdir)-1)
 
 	def Start_HotKeys(self):
 		print("Start_HotKeys")
-		keyboard.add_hotkey('F10', self.End_Capture)
-		keyboard.add_hotkey('F9', self.Take_screenshot, args=(True, 0))
+		# keyboard.unhook_all_hotkeys()
+		keyboard.add_hotkey(self.hkey["Return"], self.End_Capture)
+		keyboard.add_hotkey(self.hkey["FullScr"], self.Take_screenshot, args=(True, 0))
 		# if False:
 		if self.capturewin:
-			keyboard.add_hotkey('F8', self.Take_screenshot, args=(False, 0))
+			keyboard.add_hotkey(self.hkey["AWindow"], self.Take_screenshot, args=(False, 0))
 
 	def End_HotKeys(self):
 		print("End_HotKeys")
