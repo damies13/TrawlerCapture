@@ -1,7 +1,7 @@
 
 cd /d %dp0/..
 
-set VERSION=va.b.c
+set VERSION=v0.5.0
 
 :: pyinstaller -y  "Z:/TrawlerCapture/TC.py"
 

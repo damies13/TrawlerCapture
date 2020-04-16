@@ -1,6 +1,9 @@
 # patterns of files to ignore / prevent uploading
 *.ini
 output/
+*.exe
+*.app
+bin/TC
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
