@@ -2,6 +2,9 @@
 cd "$(dirname "$0")/.."
 
 
+export VERSION="v0.5.0"
+
+
 export OPTIONS="-y"
 # Singlae file
 export OPTIONS="$OPTIONS -F"
@@ -18,3 +21,7 @@ export OPTIONS="$OPTIONS --log-level=DEBUG"
 
 
 pyinstaller $OPTIONS --distpath "bin" "TC.py"
+
+cd bin
+zip -r TC_$(echo $VERSION)_Mac.zip TC TC.app
+cd -
