@@ -12,6 +12,13 @@ if [[ "$version" =~ v[0-9]\. ]]; then
 	sed -i '' -e "s/version = \"[^\"]*\"/version = \"${version}\"/" *.py
 	#	Version Test
 	sed -i '' -e "s/#    Version .*/#    Version ${version}/" *.py
+
+	# export VERSION="va.b.c"
+	sed -i '' -e "s/export VERSION=.*/export VERSION=\"${version}\"/" bin/*.sh
+
+	# set VERSION=va.b.c
+	sed -i '' -e "s/set VERSION=.*/set VERSION=${version}/" bin/*.bat
+
 	# git commit -m "Update version to ${version}"
 	if ! git diff-index --quiet HEAD --; then
 		# echo "commit: Update version to $version"

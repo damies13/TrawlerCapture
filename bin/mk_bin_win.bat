@@ -1,6 +1,8 @@
 
 cd /d %dp0/..
 
+set VERSION=va.b.c
+
 :: pyinstaller -y  "Z:/TrawlerCapture/TC.py"
 
 :: pyinstaller -y -F -w  "Z:/TrawlerCapture/TC.py"
@@ -27,3 +29,7 @@ set OPTIONS="%OPTIONS:"=% --log-level=DEBUG"
 
 
 pyinstaller %OPTIONS:"=% --distpath "Z:/TrawlerCapture/bin" "Z:/TrawlerCapture/TC.py"
+
+cd bin
+powershell Compress-Archive  TC.exe TC_%VERSION%_Win.zip
+cd ..

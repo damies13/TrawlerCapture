@@ -540,6 +540,7 @@ def main():
 		pass
 	else:
 		elevate(graphical=False)
+		# pass
 	root = tk.Tk()
 	app = Settings(root)
 	root.mainloop()
