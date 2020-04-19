@@ -34,7 +34,7 @@ import platform
 import os
 
 from xml.etree import ElementTree
-# pip install python-docxa
+# pip install python-docx
 from docx import Document
 from docx.shared import Cm
 
