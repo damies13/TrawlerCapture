@@ -2,7 +2,7 @@
 cd "$(dirname "$0")/.."
 
 
-export VERSION="v0.5.0"
+export VERSION="v0.5.1"
 
 
 export OPTIONS="-y"
