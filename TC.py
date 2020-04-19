@@ -5,7 +5,7 @@
 # 	Screen Capture tool for testers, to make documenting test cases easier.
 #
 #
-#    Version v0.5.0
+#    Version v0.5.1
 #
 
 #
@@ -34,6 +34,9 @@ import platform
 import os
 
 from xml.etree import ElementTree
+# pip install python-docx
+from docx import Document
+from docx.shared import Cm
 
 from elevate import elevate
 #
@@ -67,7 +70,7 @@ from elevate import elevate
 class Settings:
 	capturefullscreen = True
 	capturescreennumb = 99
-	version = "v0.5.0"
+	version = "v0.5.1"
 
 	title = "Trawler Capture"
 	# hkeys = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "key"]
@@ -82,6 +85,7 @@ class Settings:
 
 	def __init__(self, master):
 		self.master = master
+		# self.master.iconbitmap('TC_Logo.ico')
 		self.frame = tk.Frame(self.master)
 		self.master.title(self.title + " - " + self.version)
 		self.outdir = os.path.dirname(__file__)
@@ -96,6 +100,18 @@ class Settings:
 		self.outl.grid(row = rowno, column = 0, sticky = 'W', pady = 2)
 		self.oute.grid(row = rowno, column = 1, sticky = 'E', pady = 2, columnspan=2)
 		self.outb.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
+
+		rowno += 1
+
+		# https://python-docx.readthedocs.io/en/latest/api/text.html#paragraph-objects
+		fmtl = ttk.Label(self.master, text = "Output format:")
+		fmtl.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
+		self.html = tk.IntVar(value=1)
+		fmth = ttk.Checkbutton(self.master, text="HTML + PNG's", variable=self.html)
+		fmth.grid(row = rowno, column = 2, sticky = 'E', pady = 2)
+		self.docx = tk.IntVar(value=0)
+		fmtd = ttk.Checkbutton(self.master, text="DOCX", variable=self.docx)
+		fmtd.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
 
 		rowno += 1
 
@@ -231,27 +247,36 @@ class Settings:
 		# html = self.et.find('html')
 		# # print("html", html)
 		# head = ElementTree.SubElement(html, 'head')
+		print("self.html.get()", self.html.get())
+		if self.html.get():
+			self.et = ElementTree.Element('html')
+			print("et", self.et)
+			head = ElementTree.SubElement(self.et, 'head')
+			print("head", head)
 
-		self.et = ElementTree.Element('html')
-		print("et", self.et)
-		head = ElementTree.SubElement(self.et, 'head')
-		print("head", head)
+			title = ElementTree.SubElement(head, 'title')
+			datafiletime = datetime.now().strftime("%Y%m%d_%H%M%S")
+			datatime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			mytitle = self.title + " - " + datatime
+			title.text = str(mytitle)
 
-		title = ElementTree.SubElement(head, 'title')
-		datafiletime = datetime.now().strftime("%Y%m%d_%H%M%S")
-		datatime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-		mytitle = self.title + " - " + datatime
-		title.text = str(mytitle)
+			style = ElementTree.SubElement(head, 'style')
+			styletxt = "img{ max-height:500px; max-width:500px; height:auto; width:auto; }"
+			style.text = str(styletxt)
 
-		style = ElementTree.SubElement(head, 'style')
-		styletxt = "img{ max-height:500px; max-width:500px; height:auto; width:auto; }"
-		style.text = str(styletxt)
+			body = ElementTree.SubElement(self.et, 'body')
+			h1 = ElementTree.SubElement(body, 'h1')
+			h1.text = str(mytitle)
+			self.etfname = 'Capture_'+datafiletime+'.html'
 
+		print("self.docx.get()", self.docx.get())
+		if self.docx.get():
+			self.doc = Document()
+			datatime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			self.doc.add_heading(self.title + " - " + datatime, 0)
 
-		body = ElementTree.SubElement(self.et, 'body')
-		h1 = ElementTree.SubElement(body, 'h1')
-		h1.text = str(mytitle)
-		self.etfname = 'Capture_'+datafiletime+'.html'
+			datafiletime = datetime.now().strftime("%Y%m%d_%H%M%S")
+			self.docxfname = 'Capture_'+datafiletime+'.docx'
 
 		self.Start_HotKeys()
 		self.master.withdraw()
@@ -368,6 +393,7 @@ class Settings:
 class TC_Capture:
 	def __init__(self, master):
 		self.master = master
+		# self.master.iconbitmap('TC_Logo.ico')
 		self.frame = tk.Frame(self.master, width=790, height=590)
 		self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
 
@@ -449,23 +475,45 @@ class TC_Capture:
 		imgComments = self.imgComments.get("1.0",'end-1c')
 		print("_save: imgComments:", imgComments)
 		datafiletime = datetime.now().strftime("%Y%m%d_%H%M%S")
+
 		self.imfname = 'screenshot_'+datafiletime+'.png'
 		print("_save: imfname:", self.imfname)
 		self.imfile = os.path.join(self.parent.outdir, self.imfname)
 		self.parent.im.save(self.imfile)
 
-		# self.et		self.etfname
-		body = self.parent.et.find("body")
-		tagdiv = ElementTree.SubElement(body, 'div')
-		tagdiv.set("id", self.imfname)
-		tagimg = ElementTree.SubElement(tagdiv, 'img')
-		tagimg.set("src", "./"+self.imfname)
-		tagp = ElementTree.SubElement(tagdiv, 'p')
-		tagp.text = str(imgComments)
+		if self.parent.html.get():
 
-		etf = os.path.join(self.parent.outdir, self.parent.etfname)
-		tree = ElementTree.ElementTree(self.parent.et)
-		tree.write(etf)
+			# self.et		self.etfname
+			body = self.parent.et.find("body")
+			tagdiv = ElementTree.SubElement(body, 'div')
+			tagdiv.set("id", self.imfname)
+			tagimg = ElementTree.SubElement(tagdiv, 'img')
+			tagimg.set("src", "./"+self.imfname)
+			tagp = ElementTree.SubElement(tagdiv, 'p')
+			tagp.text = str(imgComments)
+
+			etf = os.path.join(self.parent.outdir, self.parent.etfname)
+			tree = ElementTree.ElementTree(self.parent.et)
+			tree.write(etf)
+
+		if self.parent.docx.get():
+
+			# self.parent.docx
+			paragraph = self.parent.doc.add_paragraph()
+			paragraph.paragraph_format.keep_together = True
+			run = paragraph.add_run()
+			# dispImg = ImageTk.PhotoImage(self.parent.im.tobytes())
+			# run.add_picture(self.imfile)
+			# docx.shared.Cm
+			run.add_picture(self.imfile, width=Cm(15))
+			run.add_text(str(imgComments))
+
+			# self.docxfname = 'Capture_'+datafiletime+'.docx'
+			docxf = os.path.join(self.parent.outdir, self.parent.docxfname)
+			self.parent.doc.save(docxf)
+
+			if self.parent.html.get() == 0:
+				os.remove(self.imfile)
 
 		self.on_closing()
 
@@ -542,6 +590,7 @@ def main():
 		elevate(graphical=False)
 		# pass
 	root = tk.Tk()
+	# root.iconbitmap('TC_Logo.ico')
 	app = Settings(root)
 	root.mainloop()
 
