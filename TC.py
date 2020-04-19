@@ -85,6 +85,7 @@ class Settings:
 
 	def __init__(self, master):
 		self.master = master
+		# self.master.iconbitmap('TC_Logo.ico')
 		self.frame = tk.Frame(self.master)
 		self.master.title(self.title + " - " + self.version)
 		self.outdir = os.path.dirname(__file__)
@@ -392,6 +393,7 @@ class Settings:
 class TC_Capture:
 	def __init__(self, master):
 		self.master = master
+		# self.master.iconbitmap('TC_Logo.ico')
 		self.frame = tk.Frame(self.master, width=790, height=590)
 		self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
 
@@ -588,6 +590,7 @@ def main():
 		elevate(graphical=False)
 		# pass
 	root = tk.Tk()
+	# root.iconbitmap('TC_Logo.ico')
 	app = Settings(root)
 	root.mainloop()
 
