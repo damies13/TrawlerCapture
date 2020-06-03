@@ -5,7 +5,7 @@
 # 	Screen Capture tool for testers, to make documenting test cases easier.
 #
 #
-#    Version v0.5.1
+#    Version v0.5.2
 #
 
 #
@@ -15,7 +15,9 @@ import tkinter as tk				#python3
 import tkinter.ttk as ttk			#python3
 # import tkFileDialog as tkf		#python2
 import tkinter.filedialog as tkf	#python3
-# import tkinter.messagebox as tkm	#python3
+import tkinter.messagebox as tkm	#python3
+
+import configparser
 
 from PIL import Image, ImageTk
 
@@ -70,15 +72,11 @@ from elevate import elevate
 class Settings:
 	capturefullscreen = True
 	capturescreennumb = 99
-	version = "v0.5.1"
+	version = "v0.5.2"
 
 	title = "Trawler Capture"
 	# hkeys = ["F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "key"]
 
-	hkey = {}
-	hkey["Return"] = "f10"
-	hkey["FullScr"] = "f9"
-	hkey["AWindow"] = "f8"
 
 	capturewin = False
 
@@ -88,15 +86,56 @@ class Settings:
 		# self.master.iconbitmap('TC_Logo.ico')
 		self.frame = tk.Frame(self.master)
 		self.master.title(self.title + " - " + self.version)
-		self.outdir = os.path.dirname(__file__)
+		self.outdir = os.path.dirname(os.path.abspath(__file__))
 		print("outdir:", self.outdir)
+
+		print("ConfigParser")
+		self.config = configparser.ConfigParser()
+		srcdir = os.path.dirname(__file__)
+		print("srcdir:", srcdir)
+
+		#
+		# 	ensure ini file
+		#
+		self.gui_ini = os.path.join(srcdir, "TC.ini")
+		print("gui_ini:", self.gui_ini)
+		if os.path.isfile(self.gui_ini):
+			self.config.read(self.gui_ini)
+		else:
+			# set defaults and save
+			if 'Capture' not in self.config:
+				self.config['Capture'] = {}
+			self.config['Capture']['Location'] = self.outdir
+			self.config['Capture']['Output Format HTML'] = 'True'
+			self.config['Capture']['Output Format DOCX'] = 'False'
+			self.config['Capture']['Hotkey Return'] = "f10"
+			self.config['Capture']['Hotkey FullScr'] = "f9"
+			self.config['Capture']['Hotkey AWindow'] = "f8"
+			print("self.config: ", self.config._sections)
+			self.saveini()
+
+		# print("self.config: ", self.config._sections)
+
+		true_set = ['true', '1', 'yes']
+		self.html = tk.IntVar(value=0)
+		if self.config['Capture']['Output Format HTML'].lower() in true_set:
+			self.html.set(1)
+
+		self.docx = tk.IntVar(value=0)
+		if self.config['Capture']['Output Format DOCX'].lower() in true_set:
+			self.docx.set(1)
+
+		self.outdir = self.config['Capture']['Location']
+		print("outdir:", self.outdir)
+
+
 		rowno = 0
 
 		self.outl = ttk.Label(self.master, text = "Capture location:")
 		self.outetxt = tk.StringVar()
 		self.oute = ttk.Entry(self.master, state='disabled', textvariable=self.outetxt)
 		self.outb = ttk.Button(self.master, text = "...", command=self._selectDir)
-		self.outetxt.set(self.outdir)
+		self.outetxt.set(self.config['Capture']['Location'])
 		self.outl.grid(row = rowno, column = 0, sticky = 'W', pady = 2)
 		self.oute.grid(row = rowno, column = 1, sticky = 'E', pady = 2, columnspan=2)
 		self.outb.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
@@ -106,11 +145,9 @@ class Settings:
 		# https://python-docx.readthedocs.io/en/latest/api/text.html#paragraph-objects
 		fmtl = ttk.Label(self.master, text = "Output format:")
 		fmtl.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
-		self.html = tk.IntVar(value=1)
-		fmth = ttk.Checkbutton(self.master, text="HTML + PNG's", variable=self.html)
+		fmth = ttk.Checkbutton(self.master, text="HTML + PNG's", variable=self.html, command=self._cb_update)
 		fmth.grid(row = rowno, column = 2, sticky = 'E', pady = 2)
-		self.docx = tk.IntVar(value=0)
-		fmtd = ttk.Checkbutton(self.master, text="DOCX", variable=self.docx)
+		fmtd = ttk.Checkbutton(self.master, text="DOCX", variable=self.docx, command=self._cb_update)
 		fmtd.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
 
 		rowno += 1
@@ -119,7 +156,7 @@ class Settings:
 		# hk1k = ttk.Label(self.master, text = self.hkey["Return"])
 		self.hk1txt = tk.StringVar()
 		self.hk1k = ttk.Entry(self.master, state='disabled', justify="right", textvariable=self.hk1txt)
-		self.hk1txt.set(self.hkey["Return"])
+		self.hk1txt.set(self.config['Capture']['Hotkey Return'])
 		hk1b = ttk.Button(self.master, text = "Set", command=self._selectHK1)
 		hk1l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
 		self.hk1k.grid(row = rowno, column = 2, sticky = 'E', pady = 2)
@@ -133,7 +170,7 @@ class Settings:
 		# l2k.grid(row = rowno, column = 2, sticky = 'E', pady = 2)
 		self.hk2txt = tk.StringVar()
 		self.hk2k = ttk.Entry(self.master, state='disabled', justify="right", textvariable=self.hk2txt)
-		self.hk2txt.set(self.hkey["FullScr"])
+		self.hk2txt.set(self.config['Capture']['Hotkey FullScr'])
 		hk2b = ttk.Button(self.master, text = "Set", command=self._selectHK2)
 		hk2l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
 		self.hk2k.grid(row = rowno, column = 2, sticky = 'E', pady = 2)
@@ -154,7 +191,7 @@ class Settings:
 			# l3k.grid(row = rowno, column = 3, sticky = 'E', pady = 2)
 			self.hk3txt = tk.StringVar()
 			self.hk3k = ttk.Entry(self.master, state='disabled', justify="right", textvariable=self.hk3txt)
-			self.hk3txt.set(self.hkey["AWindow"])
+			self.hk3txt.set(self.config['Capture']['Hotkey AWindow'])
 			hk3b = ttk.Button(self.master, text = "Set", command=self._selectHK3)
 			hk3l.grid(row = rowno, column = 0, sticky = 'W', pady = 2, columnspan=2)
 			self.hk3k.grid(row = rowno, column = 2, sticky = 'E', pady = 2)
@@ -197,42 +234,69 @@ class Settings:
 		# self.hk1txt.set("<Press HotKey>")
 		hkey = keyboard.read_hotkey()
 		print("_selectHK1: hkey", hkey)
-		self.hkey["Return"] = hkey
-		self.hk1txt.set(self.hkey["Return"])
+		self.config['Capture']['Hotkey Return'] = hkey
+		self.saveini()
+		self.hk1txt.set(self.config['Capture']['Hotkey Return'])
 		keyboard.unhook_all_hotkeys()
 
 	def _selectHK2(self):
 		print("_selectHK2")
 		hkey = keyboard.read_hotkey()
 		print("_selectHK2: hkey", hkey)
-		self.hkey["FullScr"] = hkey
-		self.hk2txt.set(self.hkey["FullScr"])
+		self.config['Capture']['Hotkey FullScr'] = hkey
+		self.saveini()
+		self.hk2txt.set(self.config['Capture']['Hotkey FullScr'])
 		keyboard.unhook_all_hotkeys()
 
 	def _selectHK3(self):
 		print("_selectHK3")
 		hkey = keyboard.read_hotkey()
 		print("_selectHK3: hkey", hkey)
-		self.hkey["AWindow"] = hkey
-		self.hk3txt.set(self.hkey["AWindow"])
+		self.config['Capture']['Hotkey AWindow'] = hkey
+		self.saveini()
+		self.hk3txt.set(self.config['Capture']['Hotkey AWindow'])
 		keyboard.unhook_all_hotkeys()
 
 	def _selectDir(self):
 		# ScenarioFile = str(tkf.askopenfilename(initialdir=base.config['Plan']['ScenarioDir'], title = "Select RFSwarm Scenario File", filetypes = (("RFSwarm","*.rfs"),("all files","*.*"))))
 		self.outdir = tkf.askdirectory()
 		print("_selectDir: outdir", self.outdir)
-		self.outetxt.set(self.outdir)
+		self.config['Capture']['Location'] = self.outdir
+		self.saveini()
+		self.outetxt.set(self.config['Capture']['Location'])
 		# self.outetxt.xview("end")
 		self.oute.xview(len(self.outdir)-1)
+
+	def _cb_update(self):
+		print("_cb_update: html: ", self.html, "	docx: ", self.docx)
+		print("_cb_update: html: ", self.html.get(), "	docx: ", self.docx.get())
+
+		if self.html.get() == 0 and self.docx.get() == 0:
+			tkm.showwarning(self.title + " - " + "Warning", "You must have at least 1 output format.")
+			self.html.set(1)
+
+
+		if self.html.get():
+			self.config['Capture']['Output Format HTML'] = 'True'
+		else:
+			self.config['Capture']['Output Format HTML'] = 'False'
+
+		if self.docx.get():
+			self.config['Capture']['Output Format DOCX'] = 'True'
+		else:
+			self.config['Capture']['Output Format DOCX'] = 'False'
+
+		self.saveini()
+
 
 	def Start_HotKeys(self):
 		print("Start_HotKeys")
 		# keyboard.unhook_all_hotkeys()
-		keyboard.add_hotkey(self.hkey["Return"], self.End_Capture)
-		keyboard.add_hotkey(self.hkey["FullScr"], self.Take_screenshot, args=(True, 0))
+		keyboard.add_hotkey(self.config['Capture']['Hotkey Return'], self.End_Capture)
+		keyboard.add_hotkey(self.config['Capture']['Hotkey FullScr'], self.Take_screenshot, args=(True, 0))
 		# if False:
 		if self.capturewin:
-			keyboard.add_hotkey(self.hkey["AWindow"], self.Take_screenshot, args=(False, 0))
+			keyboard.add_hotkey(self.config['Capture']['Hotkey AWindow'], self.Take_screenshot, args=(False, 0))
 
 	def End_HotKeys(self):
 		print("End_HotKeys")
@@ -372,6 +436,11 @@ class Settings:
 
 		bbox = (10, 10, 510, 510)
 		return bbox
+
+
+	def saveini(self):
+		with open(self.gui_ini, 'w') as configfile:    # save
+		    self.config.write(configfile)
 
 
 	# def new_window(self):
@@ -522,65 +591,7 @@ class TC_Capture:
 		self.labelImg.configure(image=self.dispImg)
 		self.labelImg.image = self.dispImg
 
-	# class TC_Capture:
-	# 	def __init__(self, master, parent):
-	# 		self.master = master
-	# 		self.parent = parent
-	# 		self.frame = tk.Frame(self.master, width=790, height=590)
-	#
-	# 		# self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
-	#
-	# 		# self.quitButton = ttk.Button(self.frame, text = 'Quit', width = 25, command = self.close_windows)
-	# 		# self.quitButton.pack()
-	# 		# self.frame.pack()
-	# 		parent.End_HotKeys()
-	#
-	# 		# print("TC_Capture, __init__	capturefullscreen:", parent.capturefullscreen, "	capturescreennumb:", parent.capturescreennumb)
-	#
-	# 		# img = PhotoImage(file = r"C:\Users\Admin\Pictures\capture1.png")
-	# 		# img = tk.PhotoImage(file = parent.imfname)
-	# 		# img1 = img.subsample(2, 2)
-	#
-	# 		# setting image with the help of label
-	# 		# ttk.Label(master, image = img1).grid(row = 0, column = 0, columnspan = 2, rowspan = 2, padx = 5, pady = 5)
-	# 		# ttk.Label(master, image = parent.im).grid(row = 0, column = 0, columnspan = 2, rowspan = 2, padx = 5, pady = 5)
-	#
-	# 		# dispImg = ImageTk.PhotoImage(parent.im)
-	# 		# # print(parent.im.height, parent.im.width)
-	#
-	# 		w = parent.im.width
-	# 		h = parent.im.height
-	#
-	# 		# if w>800 or h>600:
-	# 		# 	while w>800 or h>600:
-	# 		# 		w = int(w/2)
-	# 		# 		h = int(h/2)
-	# 		#
-	# 		# 	self.imcpy = parent.im.copy()
-	# 		# 	self.resized = self.imcpy.resize((w, h), Image.ANTIALIAS)
-	# 		# else:
-	# 		# 	self.resized = parent.im
-	#
-	# 		# self.dispImg = ImageTk.PhotoImage(self.resized)
-	# 		self.dispImg = ImageTk.PhotoImage(parent.im.copy())
-	#
-	# 		# dispImg1 = dispImg.resize((800, 600),Image.ANTIALIAS)
-	# 		self.labelImg = ttk.Label(self.master, image = self.dispImg)
-	# 		self.labelImg.grid(row = 0, column = 0, columnspan = 2, rowspan = 2, padx = 5, pady = 5)
-	#
-	# 		parent.Start_HotKeys()
-	#
-	# 	def on_closing(self, _event=None):
-	# 		self.parent.Start_HotKeys()
-	# 		self.master.destroy()
-	#
 
-
-	# def close_windows(self):
-	# 	self.master.destroy()
-
-# s = Settings()
-# s.mainloop()
 
 def main():
 	if (platform.system() == "Windows"):
