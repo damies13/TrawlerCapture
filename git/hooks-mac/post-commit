@@ -23,8 +23,8 @@ if [[ "$version" =~ v[0-9]\. ]]; then
 	if ! git diff-index --quiet HEAD --; then
 		# echo "commit: Update version to $version"
 		git add *.py
-		git bin/*.sh
-		git bin/*.bat
+		git add bin/*.sh
+		git add bin/*.bat
 	    git commit -m "Update version to ${version}"
 	fi
 # else
