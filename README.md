@@ -8,6 +8,7 @@ TrawlerCapture is a screenshot tool to make exploratory testing easier, it's nam
 > _A simple tool that can be used when trawling through an application you press a HotKey, take a screen shot of the screen and also associate some text with the screenshot._
 
 Here is the main screen of TrawlerCapture:
+
 ![Image](Doc/Images/TC_Main_052.png "Main Screen")
 
 On this screen you configure the output location, the type of output you want and the hotkeys, as you change the settings the ini file is automatically updated so your choices will be remembered.
@@ -21,6 +22,7 @@ To start capturing press the "Capture" button, but first make sure you remember 
 If you press the return hotkey the main TrawlerCapture screen will reappear and the capture mode will stop.
 
 If you press one of the capture hotkeys the preview screen will appear:
+
 ![Image](Doc/Images/TC_Preview_052.png "Main Screen")
 
 The preview screen shows a preview of the screenshot and lets you add a description in the text box below the preview, when you are happy with your description, press save to continue capturing.
